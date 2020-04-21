@@ -12,6 +12,9 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.running = True
+        self.LDI = 0b10000010
+        self.PRN = 0b01000111
+        self.HLT = 0b00000001
 
     def load(self):
         """Load a program into memory."""
@@ -63,35 +66,38 @@ class CPU:
 
         print()
 
-    def ram_read(self, address):
-        return self.ram[address]
+    def ram_read(self, MAR):
+        return self.ram[MAR]
 
-    def ram_write(self, value, address):
-        self.ram[address] = value
+    def ram_write(self, MAR, MDR):
+        self.ram[MAR] = MDR
 
     def run(self):
         """Run the CPU."""
-        while self.running:
-            inst = self.ram[self.pc]
 
-            # LDI R0,8  --> not sure what LDI stands for yet
-            if inst == 0b10000010:
-                reg_num = self.reg[self.pc + 1]
-                value = self.reg[self.pc + 2]
-                self.ram_write(reg_num, value)
+        while self.running:
+            IR = self.ram[self.pc]
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            # LDI --> Register Immediate
+            if IR == self.LDI:
+                self.ram_write(operand_a, operand_b)
                 self.pc += 3
 
             # PRN --> Print
-            elif inst == 0b01000111:
-                reg_num = self.reg[self.pc + 1]
-                # value = self.reg[reg_num]
-                print(self.ram_read(reg_num))
+            elif IR == self.PRN:
+                address = self.ram_read(self.pc + 1)
+                value = self.ram_read(address)
+                print(value)
                 self.pc += 2
 
-                # HLT --> Halt
-            elif inst == 0b00000001:
+            # HLT --> Halt
+            elif IR == self.HLT:
                 self.running = False
 
             else:
                 print("Unknown instruction")
                 self.running = False
+
+        self.trace()
