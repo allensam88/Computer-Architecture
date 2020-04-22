@@ -19,6 +19,8 @@ class CPU:
         # register is like a mini working memory, closer to the logic, faster
         self.register = [0] * 8
         self.pc = 0
+        self.sp = 7
+        self.register[self.sp] = 0xF4  # 244 decimal
         self.running = True
         # Program Run Codes
         self.dispatch = {}
@@ -141,7 +143,7 @@ class CPU:
 
         print(" | Stack:", end='')
 
-        for i in range(252, 256):
+        for i in range(240, 244):
             print(" %02i" % self.ram_read(i), end='')
 
         print()
@@ -158,6 +160,8 @@ class CPU:
         while self.running:
             instruction = self.ram[self.pc]
             inst_len = ((instruction & 0b11000000) >> 6) + 1
+            # use_alu = ((instruction & 0b00100000) >> 5)
+            # print(use_alu)
             # operand_a = self.ram_read(self.pc + 1)  # address
             # operand_b = self.ram_read(self.pc + 2)  # value
 
