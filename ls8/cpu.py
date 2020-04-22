@@ -22,10 +22,10 @@ class CPU:
         self.running = True
         # Program Run Codes
         self.dispatch = {}
-        self.dispatch[1] = self.HLT
-        self.dispatch[71] = self.PRN
-        self.dispatch[130] = self.LDI
-        # self.MUL = 162  # 0b10100010
+        self.dispatch[1] = self.HLT		# 0b00000001
+        self.dispatch[71] = self.PRN  # 0b01000111
+        self.dispatch[130] = self.LDI  # 0b10000010
+        self.dispatch[162] = self.MUL  # 0b10100010
 
     def load(self):
         """Load a program into memory."""
@@ -52,31 +52,36 @@ class CPU:
 
         # program = [
         #     # From print8.ls8
-        # 	0b1000 0010,  # LDI R0,8 --> load integer directly in to the register
-        #     0b00000000,	 # operand_a --> address pointer index 0
-        #     0b00001000,	 # operand_b --> value: 8
-        #     0b0100 0111,  # PRN R0 --> print the value
-        #     0b00000000,	 # empty
-        #     0b00000001,  # HLT --> Halt/Stop program
+        # 	  0b10000010,	# LDI R0,8 --> load integer directly in to the register
+        #     0b00000000,	# operand_a --> address pointer index 0
+        #     0b00001000,	# operand_b --> value: 8
+        #     0b01000111,	# PRN R0 --> print the value
+        #     0b00000000,	# empty
+        #     0b00000001,	# HLT --> Halt/Stop program
         # ]
 
         # for instruction in program:
         #     self.ram[address] = instruction
         #     address += 1
 
-    def HLT(self):
+    def HLT(self, inst_len):
         self.running = False
 
-    def PRN(self):
+    def PRN(self, inst_len):
         address = self.ram_read(self.pc + 1)
         print(self.register[address])
-        self.pc += 2
+        # self.pc += 2
 
-    def LDI(self):
+    def LDI(self, inst_len):
         address = self.ram_read(self.pc + 1)
         value = self.ram_read(self.pc + 2)
         self.register[address] = value
-        self.pc += 3
+        # self.pc += 3
+
+    def MUL(self, inst_len):
+        value_a = self.ram_read(self.pc + 1)
+        value_b = self.ram_read(self.pc + 2)
+        self.alu('MUL', value_a, value_b)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -123,10 +128,17 @@ class CPU:
 
         while self.running:
             instruction = self.ram[self.pc]
-            # inst_len = ((instruction & 0b11000000) >> 6) + 1
-
+            inst_len = ((instruction & 0b11000000) >> 6) + 1
             # operand_a = self.ram_read(self.pc + 1)  # address
             # operand_b = self.ram_read(self.pc + 2)  # value
+
+            if self.dispatch.get(instruction):
+                self.dispatch[instruction](inst_len)
+            else:
+                print("Unknown instruction")
+                self.running = False
+
+            self.pc += inst_len
 
             # LDI --> Load into Register immediately
             # if instruction == self.LDI:
@@ -146,11 +158,3 @@ class CPU:
             # HLT --> Halt cpu
             # elif instruction == self.HLT:
             #     self.running = False
-
-            if self.dispatch.get(instruction):
-                self.dispatch[instruction]
-            else:
-                print("Unknown instruction")
-                self.running = False
-
-            # self.pc += inst_len
