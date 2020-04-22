@@ -127,7 +127,7 @@ class CPU:
             raise Exception("Unsupported ALU operation")
 
     def trace(self):
-        print(f"TRACE --> PC: %02i | RAM: %03i %03i %03i | Register: " % (
+        print(f"TRACE --> PC: %02i | RAM: %03i %03i %03i | Register:" % (
             self.pc,
             # self.fl,
             # self.ie,
@@ -138,6 +138,11 @@ class CPU:
 
         for i in range(8):
             print(" %02i" % self.register[i], end='')
+
+        print(" | Stack:", end='')
+
+        for i in range(252, 256):
+            print(" %02i" % self.ram_read(i), end='')
 
         print()
 
