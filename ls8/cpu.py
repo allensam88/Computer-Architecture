@@ -78,10 +78,25 @@ class CPU:
         self.register[address] = value
         # self.pc += 3
 
+    def ADD(self, inst_len):
+        value_a = self.ram_read(self.pc + 1)
+        value_b = self.ram_read(self.pc + 2)
+        self.alu('ADD', value_a, value_b)
+
+    def SUB(self, inst_len):
+        value_a = self.ram_read(self.pc + 1)
+        value_b = self.ram_read(self.pc + 2)
+        self.alu('SUB', value_a, value_b)
+
     def MUL(self, inst_len):
         value_a = self.ram_read(self.pc + 1)
         value_b = self.ram_read(self.pc + 2)
         self.alu('MUL', value_a, value_b)
+
+    def DIV(self, inst_len):
+        value_a = self.ram_read(self.pc + 1)
+        value_b = self.ram_read(self.pc + 2)
+        self.alu('DIV', value_a, value_b)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
