@@ -55,8 +55,8 @@ class CPU:
         # 	  0b10000010,	# LDI R0,8 --> load integer directly in to the register
         #     0b00000000,	# operand_a --> address pointer index 0
         #     0b00001000,	# operand_b --> value: 8
-        #     0b01000111,	# PRN R0 --> print the value
-        #     0b00000000,	# empty
+        #     0b01000111,	# PRN R0 --> print the value at operand_a address
+        #     0b00000000,	# operand_a --> address pointer index 0
         #     0b00000001,	# HLT --> Halt/Stop program
         # ]
 
@@ -69,7 +69,7 @@ class CPU:
 
     def PRN(self, inst_len):
         address = self.ram_read(self.pc + 1)
-        print(self.register[address])
+        print("Print Value: ", self.register[address])
         # self.pc += 2
 
     def LDI(self, inst_len):
@@ -118,7 +118,7 @@ class CPU:
         from run() if you need help debugging.
         """
 
-        print(f"TRACE: %02X | %02X %02X %02X |" % (
+        print(f"TRACE --> PC: %02i | RAM: %03i %03i %03i | Register: " % (
             self.pc,
             # self.fl,
             # self.ie,
@@ -128,7 +128,7 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.register[i], end='')
+            print(" %02i" % self.register[i], end='')
 
         print()
 
@@ -148,6 +148,7 @@ class CPU:
             # operand_b = self.ram_read(self.pc + 2)  # value
 
             if self.dispatch.get(instruction):
+                self.trace()
                 self.dispatch[instruction](inst_len)
             else:
                 print("Unknown instruction")
