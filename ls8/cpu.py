@@ -23,6 +23,8 @@ class CPU:
         # Program Run Codes
         self.dispatch = {}
         self.dispatch[1] = self.HLT		# 0b00000001
+        self.dispatch[69] = self.PUSH  # 01000101
+        self.dispatch[70] = self.POP  # 01000110
         self.dispatch[71] = self.PRN  # 0b01000111
         self.dispatch[130] = self.LDI  # 0b10000010
         self.dispatch[162] = self.MUL  # 0b10100010
@@ -44,7 +46,7 @@ class CPU:
                     continue
 
                 # this converts the value to binary and adds to ram
-                self.ram[address] = int(line, 2)
+                self.ram_write(address, int(line, 2))
 
                 address += 1
 
@@ -67,16 +69,28 @@ class CPU:
     def HLT(self, inst_len):
         self.running = False
 
+    def PUSH(self, inst_len):
+        self.register[7] -= 1
+        reg_num = self.ram_read(self.pc + 1)
+        value = self.register[reg_num]
+        address = self.register[7]
+        self.ram_write(address, value)
+
+    def POP(self, inst_len):
+        sp = self.register[7]
+        address = self.ram_read(self.pc + 1)
+        value = self.ram_read(sp)
+        self.register[address] = value
+        self.register[7] += 1
+
     def PRN(self, inst_len):
         address = self.ram_read(self.pc + 1)
         print("Print Value: ", self.register[address])
-        # self.pc += 2
 
     def LDI(self, inst_len):
         address = self.ram_read(self.pc + 1)
         value = self.ram_read(self.pc + 2)
         self.register[address] = value
-        # self.pc += 3
 
     def ADD(self, inst_len):
         value_a = self.ram_read(self.pc + 1)
@@ -113,11 +127,6 @@ class CPU:
             raise Exception("Unsupported ALU operation")
 
     def trace(self):
-        """
-        Handy function to print out the CPU state. You might want to call this
-        from run() if you need help debugging.
-        """
-
         print(f"TRACE --> PC: %02i | RAM: %03i %03i %03i | Register: " % (
             self.pc,
             # self.fl,
@@ -148,8 +157,9 @@ class CPU:
             # operand_b = self.ram_read(self.pc + 2)  # value
 
             if self.dispatch.get(instruction):
-                self.trace()
+                # self.trace()
                 self.dispatch[instruction](inst_len)
+                self.trace()
             else:
                 print("Unknown instruction")
                 self.running = False
