@@ -9,6 +9,8 @@ PRINT_BEEJ = 1
 HALT = 2
 SAVE_REG = 3   # Store a value in a register (in the LS8 called LDI)
 PRINT_REG = 4  # corresponds to PRN in the LS8
+PUSH = 5
+POP = 6
 
 """
 memory = [
@@ -29,6 +31,10 @@ memory = [
 
 memory = [0] * 256
 register = [0] * 8   # like variables R0-R7
+
+# R7 is the SP
+SP = 7
+register[SP] = 0xF4
 
 # Load program into memory
 address = 0
@@ -68,6 +74,19 @@ while running:
         reg_num = memory[pc + 1]
         value = register[reg_num]
         print(value)
+        pc += 2
+
+    elif inst == PUSH:
+        # decrement the stack pointer
+        register[SP] -= 1   # address_of_the_top_of_stack -= 1
+
+        # copy value from register into memory
+        reg_num = memory[pc + 1]
+        value = register[reg_num]  # this is what we want to push
+
+        address = register[SP]
+        memory[address] = value   # store the value on the stack
+
         pc += 2
 
     elif inst == HALT:
