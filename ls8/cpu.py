@@ -71,8 +71,9 @@ class CPU:
         self.ram_write(self.register[self.sp], return_addr)
 
         # Set the PC to the value in the given register
-        reg_num = self.ram_read(self.pc + 1)
-        dest_addr = self.register[reg_num]
+        # reg_num = self.ram_read(self.pc + 1)
+        # dest_addr = self.register[reg_num]
+        dest_addr = self.register[operand_a]
 
         self.pc = dest_addr
 
@@ -85,13 +86,17 @@ class CPU:
         self.pc = return_addr
 
     def alu(self, op, reg_a, reg_b):
+        # ADD
         if op == 160:
             self.register[reg_a] += self.register[reg_b]
-        elif op == "SUB":
+        # SUB
+        elif op == 161:
             self.register[reg_a] -= self.register[reg_b]
+        # MUL
         elif op == 162:
             self.register[reg_a] *= self.register[reg_b]
-        elif op == "DIV":
+        # DIV
+        elif op == 163:
             self.register[reg_a] /= self.register[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
@@ -125,9 +130,14 @@ class CPU:
     def run(self):
         while self.running:
             instruction = self.ram_read(self.pc)
+            # this will be either 0, 1 or 2 (How many operands do I have?)
             inst_len = ((instruction & 0b11000000) >> 6) + 1
+
+            # this will be either a 1 or 0.  Yes or No
             use_alu = ((instruction & 0b00100000) >> 5)
-            set_pc = ((instruction & 0b00010000) >> 4)
+
+            # this will be either a 1 or 0.  Yes or No
+            pc_setter = ((instruction & 0b00010000) >> 4)
 
             if inst_len >= 1:
                 operand_a = self.ram_read(self.pc + 1)
@@ -135,18 +145,24 @@ class CPU:
             if inst_len >= 2:
                 operand_b = self.ram_read(self.pc + 2)
 
+            # if the operation utilizes the alu
             if use_alu:
                 self.alu(instruction, operand_a, operand_b)
                 self.pc += inst_len
-                self.trace()
-            elif set_pc:
-                self.dispatch[instruction](operand_a, operand_b)
-                self.trace()
+                # self.trace()
 
+            # if the operation directly set the PC, then don't auto-increment
+            # Call, Return, Jumps...
+            elif pc_setter:
+                self.dispatch[instruction](operand_a, operand_b)
+                # self.trace()
+
+                # in all other cases, dispatch the op and auto-increment
             elif self.dispatch.get(instruction):
                 self.dispatch[instruction](operand_a, operand_b)
                 self.pc += inst_len
-                self.trace()
+                # self.trace()
+
             else:
                 print("Unknown instruction")
                 self.running = False

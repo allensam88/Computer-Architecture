@@ -1,41 +1,14 @@
-import sys
-from cpu_2 import CPU
-
-cpu = CPU()
-
-if len(sys.argv) == 2:
-    program_filename = sys.argv[1]
-else:
-    print('Invalid entry --> please enter the program name.')
-    exit()
-
-
 class RAM:
     def __init__(self):
         self.ram = [0] * 256
 
     def read(self, address):
-        # self.pc += 1
         return self.ram[address]
 
     def write(self, address, value):
         self.ram[address] = value
 
-    def PUSH(self, operand_a=None, operand_b=None):
-        cpu.register[cpu.sp] -= 1
-        reg_num = self.read(cpu.pc + 1)
-        value = cpu.register[reg_num]
-        address = cpu.register[cpu.sp]
-        self.write(address, value)
-
-    def POP(self, operand_a=None, operand_b=None):
-        sp = cpu.register[cpu.sp]
-        address = self.read(cpu.pc + 1)
-        value = self.read(sp)
-        cpu.register[address] = value
-        cpu.register[cpu.sp] += 1
-
-    def load(self):
+    def load(self, program_filename):
         address = 0
 
         # Dynamic loading with parsing to strip away comments and convert to binary:
